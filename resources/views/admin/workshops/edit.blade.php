@@ -1,0 +1,168 @@
+@extends('layouts.admin')
+
+@section('content')
+<div class="max-w-4xl space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-black text-gray-950">Edit Data Workshop IT</h1>
+            <p class="text-xs text-gray-500 mt-1">Perbarui detail jadwal, kuota, materi, dan status workshop.</p>
+        </div>
+        <a href="{{ route('admin.workshops.index') }}" class="rounded-xl border border-gray-300 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition">
+            Kembali
+        </a>
+    </div>
+
+    <form method="POST" action="{{ route('admin.workshops.update', $workshop->id) }}" enctype="multipart/form-data" class="space-y-6">
+        @csrf
+        @method('PUT')
+
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm space-y-5">
+            <h2 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3">Informasi Utama</h2>
+
+            <div>
+                <label for="title" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Judul Workshop</label>
+                <input id="title" type="text" name="title" value="{{ old('title', $workshop->title) }}" required
+                    class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                @error('title')
+                    <p class="mt-1 text-xs text-red-600 font-medium">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="category" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Kategori IT</label>
+                    <input id="category" type="text" name="category" value="{{ old('category', $workshop->category) }}" required list="category-suggestions"
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                    <datalist id="category-suggestions">
+                        <option value="Web Development">
+                        <option value="Cloud & DevOps">
+                        <option value="Cyber Security">
+                        <option value="AI & Data Science">
+                        <option value="Mobile Development">
+                        <option value="UI/UX Design">
+                    </datalist>
+                </div>
+
+                <div>
+                    <label for="status" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Status Workshop</label>
+                    <select id="status" name="status" class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                        <option value="available" {{ old('status', $workshop->status) === 'available' ? 'selected' : '' }}>Available (Tersedia)</option>
+                        <option value="full" {{ old('status', $workshop->status) === 'full' ? 'selected' : '' }}>Full (Kuota Penuh)</option>
+                        <option value="closed" {{ old('status', $workshop->status) === 'closed' ? 'selected' : '' }}>Closed (Ditutup)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="instructor_name" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Nama Pemateri</label>
+                    <input id="instructor_name" type="text" name="instructor_name" value="{{ old('instructor_name', $workshop->instructor_name) }}" required
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+
+                <div>
+                    <label for="instructor_title" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Gelar / Jabatan Pemateri</label>
+                    <input id="instructor_title" type="text" name="instructor_title" value="{{ old('instructor_title', $workshop->instructor_title) }}"
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+            </div>
+
+            <div>
+                <label for="description" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Deskripsi Lengkap</label>
+                <textarea id="description" name="description" rows="4" required
+                    class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">{{ old('description', $workshop->description) }}</textarea>
+            </div>
+
+            <div>
+                <label for="learning_points" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Poin Pembelajaran (Pisahkan Tiap Baris Baru)</label>
+                <textarea id="learning_points" name="learning_points" rows="3"
+                    class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">{{ old('learning_points', $workshop->learning_points) }}</textarea>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm space-y-5">
+            <h2 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3">Jadwal, Kuota & Biaya</h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label for="date" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Tanggal</label>
+                    <input id="date" type="date" name="date" value="{{ old('date', $workshop->date->format('Y-m-d')) }}" required
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+
+                <div>
+                    <label for="start_time" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Jam Mulai</label>
+                    <input id="start_time" type="text" name="start_time" value="{{ old('start_time', $workshop->start_time) }}" required
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+
+                <div>
+                    <label for="end_time" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Jam Selesai</label>
+                    <input id="end_time" type="text" name="end_time" value="{{ old('end_time', $workshop->end_time) }}" required
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="location_type" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Format Workshop</label>
+                    <select id="location_type" name="location_type" class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                        <option value="offline" {{ old('location_type', $workshop->location_type) === 'offline' ? 'selected' : '' }}>Offline</option>
+                        <option value="online" {{ old('location_type', $workshop->location_type) === 'online' ? 'selected' : '' }}>Online</option>
+                        <option value="hybrid" {{ old('location_type', $workshop->location_type) === 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="location" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Ruangan / Venue Lokasi</label>
+                    <input id="location" type="text" name="location" value="{{ old('location', $workshop->location) }}" required
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="price" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Biaya Pendaftaran (Rp)</label>
+                    <input id="price" type="number" name="price" value="{{ old('price', (int)$workshop->price) }}" min="0" required
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+
+                <div>
+                    <label for="quota" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Kapasitas / Kuota Peserta</label>
+                    <input id="quota" type="number" name="quota" value="{{ old('quota', $workshop->quota) }}" min="1" required
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="image_url" class="block text-xs font-bold uppercase tracking-wider text-gray-700">URL Gambar Banner</label>
+                    <input id="image_url" type="url" name="image_url" value="{{ old('image_url', $workshop->image) }}"
+                        class="mt-1.5 block w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+
+                <div>
+                    <label for="image" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Ganti File Gambar</label>
+                    <input id="image" type="file" name="image" accept="image/*"
+                        class="mt-1.5 block w-full text-xs text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-red-50 file:px-4 file:py-2.5 file:text-xs file:font-bold file:text-red-700 hover:file:bg-red-100">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <input id="is_featured" type="checkbox" name="is_featured" value="1" {{ old('is_featured', $workshop->is_featured) ? 'checked' : '' }}
+                    class="rounded border-gray-300 text-red-600 focus:ring-red-600">
+                <label for="is_featured" class="text-xs font-semibold text-gray-700">Tampilkan sebagai Workshop Unggulan di Halaman Utama</label>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+            <a href="{{ route('admin.workshops.index') }}" class="rounded-xl border border-gray-300 px-5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition">
+                Batal
+            </a>
+            <button type="submit" class="rounded-xl bg-red-600 px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-red-700 transition">
+                Simpan Perubahan
+            </button>
+        </div>
+    </form>
+</div>
+@endsection
