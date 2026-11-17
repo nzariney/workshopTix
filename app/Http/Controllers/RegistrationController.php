@@ -111,7 +111,7 @@ class RegistrationController extends Controller
                 'status' => $isFree ? 'paid' : 'pending_payment',
             ]);
 
-            $payCode = 'PAY-'.date('Ymd').'-'.strtoupper(Str::random(5));
+            $payCode = 'WTX-'.strtoupper(Str::ulid());
             $payment = Payment::create([
                 'payment_code' => $payCode,
                 'registration_id' => $registration->id,

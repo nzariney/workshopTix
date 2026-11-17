@@ -78,38 +78,32 @@
                     <h2 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3">Pilihan Metode Pembayaran</h2>
 
                     <div class="space-y-3">
+                        <label class="flex items-start gap-3 rounded-xl border-2 border-red-300 bg-red-50/40 p-4 hover:border-red-600 cursor-pointer transition">
+                            <input type="radio" name="payment_method" value="Midtrans" checked class="mt-1 text-red-600 focus:ring-red-600">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-sm text-gray-900">Midtrans Payment Gateway</span>
+                                    <span class="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">Otomatis / Real-Time</span>
+                                </div>
+                                <span class="text-xs text-gray-600 block mt-1">
+                                    Pembayaran resmi via Midtrans Snap: QRIS, GoPay, ShopeePay, Virtual Account (BCA, Mandiri, BNI, BRI, Permata), serta Kartu Kredit/Debit.
+                                </span>
+                            </div>
+                        </label>
+
                         <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-4 hover:border-red-600 cursor-pointer transition">
-                            <input type="radio" name="payment_method" value="Bank Transfer BCA" checked class="mt-1 text-red-600 focus:ring-red-600">
+                            <input type="radio" name="payment_method" value="Bank Transfer BCA" class="mt-1 text-red-600 focus:ring-red-600">
                             <div>
-                                <span class="font-bold text-sm text-gray-900 block">Transfer Bank BCA</span>
-                                <span class="text-xs text-gray-500">Rekening Resmi Panitia (Konfirmasi via upload bukti struk / m-Banking)</span>
+                                <span class="font-bold text-sm text-gray-900 block">Transfer Manual Bank BCA</span>
+                                <span class="text-xs text-gray-500">Rekening Resmi Panitia (Konfirmasi via upload bukti transfer)</span>
                             </div>
                         </label>
 
                         <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-4 hover:border-red-600 cursor-pointer transition">
                             <input type="radio" name="payment_method" value="Bank Transfer Mandiri" class="mt-1 text-red-600 focus:ring-red-600">
                             <div>
-                                <span class="font-bold text-sm text-gray-900 block">Transfer Bank Mandiri</span>
+                                <span class="font-bold text-sm text-gray-900 block">Transfer Manual Bank Mandiri</span>
                                 <span class="text-xs text-gray-500">Rekening Resmi Panitia Mandiri</span>
-                            </div>
-                        </label>
-
-                        <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-4 hover:border-red-600 cursor-pointer transition">
-                            <input type="radio" name="payment_method" value="QRIS Dinamis" class="mt-1 text-red-600 focus:ring-red-600">
-                            <div>
-                                <span class="font-bold text-sm text-gray-900 block">QRIS Standar Nasional</span>
-                                <span class="text-xs text-gray-500">Scan QRIS dari aplikasi GoPay, OVO, Dana, ShopeePay, atau Mobile Banking</span>
-                            </div>
-                        </label>
-
-                        <label class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50/40 p-4 hover:border-red-600 cursor-pointer transition">
-                            <input type="radio" name="payment_method" value="Midtrans Sandbox" class="mt-1 text-red-600 focus:ring-red-600">
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-sm text-gray-900">Midtrans Sandbox Simulator</span>
-                                    <span class="rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white uppercase">Drill Demo</span>
-                                </div>
-                                <span class="text-xs text-gray-600">Simulasi bayar instan untuk demo pengujian pra sertifikasi tanpa biaya riil</span>
                             </div>
                         </label>
                     </div>

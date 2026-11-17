@@ -17,6 +17,8 @@ class Payment extends Model
         'user_id',
         'amount',
         'payment_method',
+        'snap_token',
+        'midtrans_response',
         'payment_proof',
         'status',
         'admin_notes',
@@ -29,6 +31,7 @@ class Payment extends Model
         return [
             'amount' => 'decimal:2',
             'verified_at' => 'datetime',
+            'midtrans_response' => 'array',
         ];
     }
 
@@ -50,6 +53,22 @@ class Payment extends Model
     public function getFormattedAmountAttribute(): string
     {
         return 'Rp '.number_format($this->amount, 0, ',', '.');
+    }
+
+    public function getPaymentUrlAttribute(): ?string
+    {
+        if ($this->midtrans_response && ! empty($this->midtrans_response['redirect_url'])) {
+            return $this->midtrans_response['redirect_url'];
+        }
+
+        if ($this->snap_token) {
+            $isProduction = (bool) config('midtrans.is_production', false);
+            $baseUrl = $isProduction ? 'https://app.midtrans.com' : 'https://app.sandbox.midtrans.com';
+
+            return "{$baseUrl}/snap/v4/redirection/{$this->snap_token}";
+        }
+
+        return null;
     }
 
     public function getProofUrlAttribute(): ?string

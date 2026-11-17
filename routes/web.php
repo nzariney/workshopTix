@@ -20,6 +20,10 @@ Route::get('/workshops', [WorkshopController::class, 'index'])->name('workshops.
 Route::get('/workshops/{slug}', [WorkshopController::class, 'show'])->name('workshops.show');
 Route::get('/tickets/verify/{code}', [TicketController::class, 'verify'])->name('tickets.verify');
 
+// Midtrans Public Webhook Notification (Excluded from CSRF)
+Route::post('/midtrans/notification', [PaymentController::class, 'handleNotification'])->name('midtrans.notification');
+Route::post('/api/midtrans/notification', [PaymentController::class, 'handleNotification']);
+
 // Authentication (Guest)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -38,10 +42,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/workshops/{slug}/register', [RegistrationController::class, 'store'])->name('registrations.store');
     Route::get('/registrations/{code}', [RegistrationController::class, 'show'])->name('registrations.show');
 
-    // Payment Processing
+    // Payment Processing (Real Midtrans Snap & Sandbox Gateway)
     Route::get('/payments/{code}', [PaymentController::class, 'show'])->name('payments.show');
+    Route::get('/payments/{code}/pay', [PaymentController::class, 'payViaMidtrans'])->name('payments.pay');
     Route::post('/payments/{code}/upload-proof', [PaymentController::class, 'uploadProof'])->name('payments.uploadProof');
-    Route::post('/payments/{code}/simulate-sandbox', [PaymentController::class, 'simulateSandbox'])->name('payments.simulateSandbox');
+    Route::post('/payments/{code}/midtrans-finish', [PaymentController::class, 'midtransFinish'])->name('payments.midtransFinish');
+    Route::post('/payments/{code}/check-status', [PaymentController::class, 'checkStatus'])->name('payments.checkStatus');
 
     // Digital Tickets
     Route::get('/my-tickets', [TicketController::class, 'myTickets'])->name('tickets.myTickets');

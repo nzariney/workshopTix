@@ -85,7 +85,7 @@ test('participant can register for a workshop and payment record is created', fu
         'email' => $user->email,
         'phone' => '081299998888',
         'institution' => 'SMK Pesat',
-        'payment_method' => 'Bank Transfer BCA',
+        'payment_method' => 'Midtrans',
     ]);
 
     $registration = Registration::where('user_id', $user->id)->where('workshop_id', $workshop->id)->first();
@@ -119,7 +119,7 @@ test('system rejects duplicate registration for the same workshop (anti-duplicat
         'full_name' => $user->name,
         'email' => $user->email,
         'phone' => '08123456789',
-        'payment_method' => 'Bank Transfer BCA',
+        'payment_method' => 'Midtrans',
     ]);
 
     $response->assertRedirect(route('workshops.show', $workshop->slug));
@@ -146,7 +146,7 @@ test('user cannot access payment or ticket belonging to another participant', fu
         'registration_id' => $regA->id,
         'user_id' => $userA->id,
         'amount' => 150000,
-        'payment_method' => 'Bank Transfer BCA',
+        'payment_method' => 'Midtrans',
         'status' => 'verified',
     ]);
 
@@ -181,12 +181,12 @@ test('participant cannot access admin routes, only admin can access', function (
     $this->actingAs($admin)->get('/admin/workshops')->assertStatus(200);
 });
 
-test('simulating sandbox payment verifies transaction and automatically generates ticket', function () {
+test('midtrans finish callback marks payment verified and issues ticket', function () {
     $user = User::factory()->create(['role' => 'participant']);
     $workshop = createTestWorkshop();
 
     $reg = Registration::create([
-        'registration_code' => 'REG-SBX-1',
+        'registration_code' => 'REG-MID-1',
         'user_id' => $user->id,
         'workshop_id' => $workshop->id,
         'full_name' => $user->name,
@@ -196,15 +196,21 @@ test('simulating sandbox payment verifies transaction and automatically generate
     ]);
 
     $payment = Payment::create([
-        'payment_code' => 'PAY-SBX-1',
+        'payment_code' => 'PAY-MID-1',
         'registration_id' => $reg->id,
         'user_id' => $user->id,
         'amount' => 150000,
-        'payment_method' => 'Midtrans Sandbox',
+        'payment_method' => 'Midtrans',
         'status' => 'pending',
     ]);
 
-    $response = $this->actingAs($user)->post('/payments/'.$payment->payment_code.'/simulate-sandbox');
+    $response = $this->actingAs($user)->post('/payments/'.$payment->payment_code.'/midtrans-finish', [
+        'result_data' => [
+            'order_id' => $payment->payment_code,
+            'transaction_status' => 'settlement',
+            'payment_type' => 'qris',
+        ],
+    ]);
 
     $payment->refresh();
     $reg->refresh();
@@ -217,6 +223,55 @@ test('simulating sandbox payment verifies transaction and automatically generate
     expect($ticket->status)->toBe('valid');
 
     $response->assertRedirect(route('tickets.show', $ticket->ticket_code));
+});
+
+test('midtrans webhook notification verifies payment with signature validation', function () {
+    config()->set('midtrans.server_key', 'test-server-key-1234');
+
+    $user = User::factory()->create(['role' => 'participant']);
+    $workshop = createTestWorkshop();
+
+    $reg = Registration::create([
+        'registration_code' => 'REG-NOTIF-1',
+        'user_id' => $user->id,
+        'workshop_id' => $workshop->id,
+        'full_name' => $user->name,
+        'email' => $user->email,
+        'phone' => '08123456789',
+        'status' => 'pending_payment',
+    ]);
+
+    $payment = Payment::create([
+        'payment_code' => 'PAY-NOTIF-1',
+        'registration_id' => $reg->id,
+        'user_id' => $user->id,
+        'amount' => 150000,
+        'payment_method' => 'Midtrans',
+        'status' => 'pending',
+    ]);
+
+    $orderId = $payment->payment_code;
+    $statusCode = '200';
+    $grossAmount = '150000.00';
+    $serverKey = 'test-server-key-1234';
+    $signature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
+
+    $response = $this->postJson('/midtrans/notification', [
+        'order_id' => $orderId,
+        'status_code' => $statusCode,
+        'gross_amount' => $grossAmount,
+        'signature_key' => $signature,
+        'transaction_status' => 'settlement',
+        'payment_type' => 'bank_transfer',
+    ]);
+
+    $response->assertStatus(200);
+
+    $payment->refresh();
+    expect($payment->status)->toBe('verified');
+
+    $ticket = Ticket::where('registration_id', $reg->id)->first();
+    expect($ticket)->not->toBeNull();
 });
 
 test('admin can verify payment and issue ticket', function () {
@@ -297,4 +352,32 @@ test('ticket verification endpoint displays valid ticket and gate scanner check-
         'code' => $ticket->ticket_code,
     ]);
     $secondScan->assertSessionHas('warning');
+});
+
+test('participant registration generates WTX- order ID and pay route redirects to midtrans url', function () {
+    $user = User::factory()->create(['role' => 'participant']);
+    $workshop = createTestWorkshop(['price' => 50000]);
+
+    $this->actingAs($user)->post('/workshops/'.$workshop->slug.'/register', [
+        'full_name' => 'Peserta WTX Test',
+        'email' => $user->email,
+        'phone' => '08123456789',
+        'institution' => 'SMK Pesat IT',
+        'payment_method' => 'Midtrans',
+    ]);
+
+    $payment = Payment::where('user_id', $user->id)->latest()->first();
+    expect($payment)->not->toBeNull();
+    expect($payment->payment_code)->toStartWith('WTX-');
+
+    // Attach mock snap_token
+    $payment->update([
+        'snap_token' => 'mock-snap-token-12345',
+        'midtrans_response' => [
+            'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v4/redirection/mock-snap-token-12345',
+        ],
+    ]);
+
+    $payResponse = $this->actingAs($user)->get('/payments/'.$payment->payment_code.'/pay');
+    $payResponse->assertRedirect('https://app.sandbox.midtrans.com/snap/v4/redirection/mock-snap-token-12345');
 });
